@@ -1,38 +1,81 @@
 <html>
   <head>
-    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script
+      src="https://unpkg.com/react@16/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"
+      crossorigin
+    ></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.js'></script>
-<style>
-body {
-  font-family: sans-serif;
-}
-</style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+    </style>
   </head>
   <body>
-    <div id='root'></div>
-    <script type='text/babel'>
+    <div id="root"></div>
+    <script type="text/babel">
       const { useEffect, useState } = React;
-      const App = ()=> {
-        const [ companies, setCompanies ] = useState([]);
-        useEffect(()=> {
-          axios.get('/api/companies')
-            .then( response => setCompanies(response.data));
+      const App = () => {
+        const [companies, setCompanies] = useState([]);
+        const [newCompany, setNewCompany] = useState({
+          id: 'empty',
+          name: 'empty',
+          phone: '1-800-ASK-GARY',
+          state: 'empty',
+          catchPhrase: "that's how mafia works",
+          createdAt: '2019-08-27T04:48:03.532Z',
+          updatedAt: '2019-08-27T04:48:03.532Z'
+        });
+        useEffect(() => {
+          axios.get('/api/companies').then(response => {
+            setCompanies(response.data);
+          });
         }, []);
+
+        const removeCompany = companyId => {
+          axios.delete(`/api/companies/${companyId}`).then(() => {
+            axios
+              .get('/api/companies')
+              .then(response => setCompanies(response.data));
+          });
+        };
+
+        const createCompany = ev => {
+          // companyName comes from user input
+          const companyName = ev.target.parentElement.children[1].value;
+          axios
+            .post(`/api/companies/`, {
+              ...newCompany,
+              name: companyName
+            })
+            .then(() => {
+              axios
+                .get('/api/companies')
+                .then(response => setCompanies(response.data));
+            });
+        };
+
         return (
           <div>
             <h2>Acme Companies - POST JSON</h2>
+            <input placeholder="enter company name" />
+            <button onClick={ev => createCompany(ev)}>Add Company</button>
             <ul>
-              {
-                companies.map( company => {
-                  return (
-                    <li key={ company.id }>
-                      { company.name }
-                    </li>
-                  );
-                })
-              }
+              {companies.map(company => {
+                return (
+                  <li key={company.id}>
+                    {company.name}
+                    <button onClick={() => removeCompany(company.id)}>
+                      delete
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         );
